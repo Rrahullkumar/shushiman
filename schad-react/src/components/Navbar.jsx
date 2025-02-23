@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FiMenu, FiX, FiSearch, FiShoppingCart, FiUser } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { FiMenu, FiX, FiSearch, FiShoppingCart, FiUser, FiLogOut } from "react-icons/fi";
 
 function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [userDropdown, setUserDropdown] = useState(false);
   const navigate = useNavigate();
-  const dropdownRef = useRef(null); // Ref for the dropdown
+  const dropdownRef = useRef(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,55 +22,27 @@ function Navbar() {
     };
   }, []);
 
-  // Close dropdown when an option is clicked
-  const handleOptionClick = (path) => {
-    navigate(path);
-    setUserDropdown(false); // Close dropdown after navigation
-  };
-
-  // Navigate to the home page
-  const handleHomeClick = () => {
-    navigate("/");
-  };
-
-  // Navigate to the About Us page
-  const handleAboutClick = () => {
-    navigate("/about-us");
-  };
-
-  // Navigate to the Contact page
-  const handleContactClick = () => {
-    navigate("/contact");
-  };
+  // // Logout function
+  // const handleLogout = () => {
+  //   localStorage.removeItem("token");
+  //   navigate("/");
+  // };
 
   return (
     <header className="fixed top-0 left-0 w-full bg-[#0c4b40] py-4 px-6 z-50">
       <nav className="flex justify-between items-center max-w-7xl mx-auto">
+        {/* Brand Name */}
         <div>
           <h4 className="text-white text-2xl font-bold">SushiMan</h4>
         </div>
 
+        {/* Desktop Navigation */}
         <ul className="hidden md:flex space-x-8 text-white font-medium">
-          <li
-            className="hover:text-yellow-400 cursor-pointer"
-            onClick={handleHomeClick} // Navigate to home page
-          >
-            Home
-          </li>
-          <li
-            className="hover:text-yellow-400 cursor-pointer"
-            onClick={handleAboutClick} // Navigate to About Us page
-          >
-            About
-          </li>
-          <li className="hover:text-yellow-400 cursor-pointer">Menu</li>
-          <li className="hover:text-yellow-400 cursor-pointer">Services</li>
-          <li
-            className="hover:text-yellow-400 cursor-pointer"
-            onClick={handleContactClick} // Navigate to Contact page
-          >
-            Contact
-          </li>
+          <li className="hover:text-yellow-400 cursor-pointer" onClick={() => navigate("/")}>Home</li>
+          <li className="hover:text-yellow-400 cursor-pointer" onClick={() => navigate("/menu")}>Menu</li>
+          <li className="hover:text-yellow-400 cursor-pointer" onClick={() => navigate("/about-us")}>About</li>
+          <li className="hover:text-yellow-400 cursor-pointer" onClick={() => navigate("/services")}>Services</li>
+          <li className="hover:text-yellow-400 cursor-pointer" onClick={() => navigate("/contact")}>Contact</li>
         </ul>
 
         {/* Icons Section */}
@@ -88,16 +60,22 @@ function Navbar() {
               <div className="absolute right-0 mt-2 bg-white text-black py-2 w-40 rounded shadow-lg">
                 <button
                   className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                  onClick={() => handleOptionClick("/customer-login")}
+                  onClick={() => navigate("/customer-login")}
                 >
                   Customer
                 </button>
                 <button
                   className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                  onClick={() => handleOptionClick("/owner-login")}
+                  onClick={() => navigate("/owner-login")}
                 >
                   Owner
                 </button>
+                {/* <button
+                  className="block w-full text-left px-4 py-2 text-red-500 hover:bg-gray-200 flex items-center"
+                  onClick={handleLogout}
+                >
+                  <FiLogOut className="mr-2" /> Logout
+                </button> */}
               </div>
             )}
           </div>

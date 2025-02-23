@@ -22,6 +22,7 @@ function HeroSection() {
                 </p>
                 <div className="flex justify-center lg:justify-start gap-4">
                     <motion.button 
+                        onClick={() => navigate("/menu")}
                         className="bg-yellow-400 text-black px-6 py-3 rounded-full font-semibold hover:bg-yellow-500 transition"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}

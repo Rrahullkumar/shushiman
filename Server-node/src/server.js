@@ -3,6 +3,8 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
+const menuRoutes = require('./routes/menuRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
@@ -34,6 +36,8 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use('/api/menu', menuRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Database connection
 const connectDB = async () => {
