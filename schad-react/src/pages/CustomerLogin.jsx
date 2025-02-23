@@ -8,40 +8,36 @@ const CustomerLogin = () => {
   const [name, setName] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  // Modified handleSubmit function
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  try {
     const url = isRegistering ? "/api/auth/register" : "/api/auth/login";
-    const body = isRegistering ? { name, email, password } : { email, password };
+    const body = isRegistering 
+      ? { name, email, password, role: "customer" }
+      : { email, password };
 
-    // In your login/register handler
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const response = await fetch(`http://localhost:5000${url}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
 
-      // Handle non-JSON responses
-      const contentType = response.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server returned unexpected response");
-      }
+    const responseData = await response.json();
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Request failed");
-      }
-
-      // Handle successful response
-    } catch (error) {
-      console.error("Request failed:", error);
-      alert(error.message);
+    if (!response.ok) {
+      throw new Error(responseData.message || "Request failed");
     }
-  };
+
+    localStorage.setItem("token", responseData.token);
+    navigate("/menu");
+
+  } catch (error) {
+    console.error("Auth error:", error);
+    alert(error.message);
+  }
+};
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-[#0c4b40]">

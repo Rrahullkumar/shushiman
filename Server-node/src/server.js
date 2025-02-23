@@ -41,12 +41,13 @@ app.use((req, res, next) => {
 app.use("/api/auth", authRoutes);
 
 // MongoDB connection with event listeners
-mongoose.connection.on("connected", () => 
-  console.log("MongoDB connection established")
-);
-mongoose.connection.on("disconnected", () => 
-  console.log("MongoDB connection lost")
-);
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB connection established"))
+  .catch(err => console.error("MongoDB connection failed:", err.message));
+
+mongoose.connection.on("error", err => {
+  console.error("MongoDB runtime error:", err.message);
+});
 
 const connectDB = async () => {
   try {

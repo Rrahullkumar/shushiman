@@ -8,6 +8,7 @@ import AboutUs from "./components/AboutUS";
 import Footer from "./components/Footer";
 import CustomerLogin from "./pages/CustomerLogin";
 import OwnerLogin from "./pages/OwnerLogin";
+import Menu from "./pages/Menu";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
         />
         <Route path="/customer-login" element={<CustomerLogin />} />
         <Route path="/owner-login" element={<OwnerLogin />} />
+        <Route path="/menu" element={<Menu />} />
         <Route path="/about-us" element={<AboutUs />} /> {/* Route for AboutUs */}
         <Route path="/contact" element={<Footer />} /> {/* Route for Footer */}
       </Routes>

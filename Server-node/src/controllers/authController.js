@@ -2,58 +2,94 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
+// Modified registerUser function
 const registerUser = async (req, res) => {
     try {
       const { name, email, password, role } = req.body;
-      console.log("Registration request body:", { name, email, password, role });
+      
+      // Validate required fields
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
   
-      const existingUser = await User.findOne({ email });
+      // Case-insensitive email search
+      const existingUser = await User.findOne({ 
+        email: { $regex: new RegExp(email, "i") }
+      });
+  
       if (existingUser) {
-        console.log("User already exists:", email);
-        return res.status(400).json({ message: "User already exists" });
+        return res.status(409).json({ message: "User already exists" });
       }
   
       const hashedPassword = await bcrypt.hash(password, 10);
-      console.log("Password hashed successfully");
+      const newUser = await User.create({
+        name,
+        email: email.toLowerCase(),
+        password: hashedPassword,
+        role: role || "customer"
+      });
   
-      const newUser = new User({ name, email, password: hashedPassword, role });
-      await newUser.save();
-      console.log("User saved to database:", newUser);
+      const token = jwt.sign(
+        { id: newUser._id, role: newUser.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
   
-      const token = jwt.sign({ id: newUser._id, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-      console.log("Token generated:", token);
+      res.status(201).json({
+        message: "User registered successfully",
+        token,
+        user: { id: newUser._id, name: newUser.name, email: newUser.email }
+      });
   
-      res.status(201).json({ message: "User registered successfully", token });
     } catch (error) {
       console.error("Registration error:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({ 
+        message: "Server error",
+        error: error.message 
+      });
     }
   };
   
+  // Modified loginUser function
   const loginUser = async (req, res) => {
     try {
       const { email, password } = req.body;
-      console.log("Login request body:", { email, password });
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password required" });
+      }
   
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ 
+        email: { $regex: new RegExp(email, "i") }
+      });
+  
       if (!user) {
-        console.log("User not found:", email);
-        return res.status(400).json({ message: "User not found" });
+        return res.status(401).json({ message: "Invalid credentials" });
       }
   
       const isMatch = await bcrypt.compare(password, user.password);
       if (!isMatch) {
-        console.log("Invalid credentials for:", email);
-        return res.status(400).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid credentials" });
       }
   
-      const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
-      console.log("Token generated:", token);
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "1h" }
+      );
   
-      res.json({ message: "Login successful", token });
+      res.json({
+        message: "Login successful",
+        token,
+        user: { id: user._id, name: user.name, email: user.email }
+      });
+  
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ message: "Server error", error: error.message });
+      res.status(500).json({ 
+        message: "Server error",
+        error: error.message 
+      });
     }
   };
 
