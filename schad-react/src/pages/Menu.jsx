@@ -12,6 +12,7 @@ const Menu = () => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        console.log("Decoded token:", decoded); // Debugging: Log the decoded token
         setUserName(decoded.name || "User"); // Set the user's name
       } catch (error) {
         console.error("Error decoding token:", error);
@@ -20,7 +21,7 @@ const Menu = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0c4b40] pt-20 pb-8"> {/* Adjusted padding-top for navbar */}
+    <div className="min-h-screen bg-[#0c4b40] pt-20 pb-8">
       <div className="max-w-7xl mx-auto flex gap-8">
         {/* Left Side (80% width) */}
         <div className="w-[80%] bg-yellow-400 rounded-lg shadow-lg p-6">
