@@ -7,17 +7,51 @@ const OwnerLogin = () => {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [restaurantName, setRestaurantName] = useState("");
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isRegistering) {
-      console.log("Owner Registration:", name, email, password, restaurantName);
-      // TODO: Send API request for owner registration
-    } else {
-      console.log("Owner Login Attempted:", email, password);
-      // TODO: Send API request for owner login
-      navigate("/dashboard"); // Redirect after login (ensure Dashboard page exists)
+    setError("");
+  
+    const backendUrl = "http://localhost:5000"; // Add backend URL
+    const url = isRegistering 
+      ? `${backendUrl}/api/auth/owner/register` 
+      : `${backendUrl}/api/auth/owner/login`;
+  
+    const body = isRegistering
+      ? { name, email, password, restaurantName, role: "owner" }
+      : { email, password };
+  
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+  
+      const responseText = await response.text();
+      console.log("Raw response:", responseText);
+  
+      let data;
+      try {
+        data = JSON.parse(responseText); // Try to parse the response as JSON
+      } catch {
+        throw new Error(`Invalid JSON: ${responseText.slice(0, 100)}`);
+      }
+  
+      if (!response.ok) {
+        throw new Error(data.message || "Request failed");
+      }
+  
+      // Save token to localStorage
+      localStorage.setItem("token", data.token);
+  
+      // Navigate to dashboard
+      navigate("/dashboard");
+    } catch (error) {
+      console.error("Auth error:", error);
+      setError(error.message);
     }
   };
 
@@ -31,7 +65,7 @@ const OwnerLogin = () => {
           }`}
         >
           <img
-            src="https://cdn.pixabay.com/photo/2017/10/28/23/21/sushi-2898470_1280.png" // Replace with your image URL
+            src="https://cdn.pixabay.com/photo/2017/10/28/23/21/sushi-2898470_1280.png"
             alt="Owner Login/Register"
             className="w-full h-full object-cover"
           />
@@ -46,6 +80,7 @@ const OwnerLogin = () => {
           <h2 className="text-2xl font-bold mb-6 text-center">
             {isRegistering ? "Owner Signup" : "Owner Login"}
           </h2>
+          {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
           <form onSubmit={handleSubmit}>
             {isRegistering && (
               <>

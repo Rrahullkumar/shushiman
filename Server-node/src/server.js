@@ -2,12 +2,11 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
-// Enhanced CORS with preflight support
+// Enhanced CORS configuration
 app.use(cors({
   origin: "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -15,23 +14,19 @@ app.use(cors({
   credentials: true
 }));
 
-// Handle preflight requests
-app.options("*", cors());
-
-// Improved JSON body parsing
+// Body parser middleware
 app.use(express.json({
   limit: "10mb",
   verify: (req, res, buf) => {
-    req.rawBody = buf.toString();
     try {
-      JSON.parse(req.rawBody);
+      JSON.parse(buf.toString());
     } catch (e) {
-      return res.status(400).json({ error: "Invalid JSON format" }).end();
+      res.status(400).json({ error: "Invalid JSON format" });
     }
   }
 }));
 
-// Request logger middleware
+// Request logging
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
@@ -40,15 +35,7 @@ app.use((req, res, next) => {
 // Routes
 app.use("/api/auth", authRoutes);
 
-// MongoDB connection with event listeners
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connection established"))
-  .catch(err => console.error("MongoDB connection failed:", err.message));
-
-mongoose.connection.on("error", err => {
-  console.error("MongoDB runtime error:", err.message);
-});
-
+// Database connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -56,13 +43,14 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000
     });
+    console.log("MongoDB connected successfully");
   } catch (err) {
     console.error("MongoDB connection failed:", err.message);
     process.exit(1);
   }
 };
 
-// Unified error handler
+// Error handling
 app.use((err, req, res, next) => {
   console.error(`[ERROR] ${err.message}`);
   res.status(err.status || 500).json({
@@ -71,7 +59,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 Handler
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: "Endpoint not found" });
 });
@@ -80,7 +68,7 @@ app.use((req, res) => {
 connectDB().then(() => {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log(`Server operational on port ${PORT}`);
+    console.log(`Server running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
   });
 });

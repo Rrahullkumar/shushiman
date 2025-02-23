@@ -9,6 +9,7 @@ import Footer from "./components/Footer";
 import CustomerLogin from "./pages/CustomerLogin";
 import OwnerLogin from "./pages/OwnerLogin";
 import Menu from "./pages/Menu";
+import Dashboard from "./pages/Dashboard";
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
         />
         <Route path="/customer-login" element={<CustomerLogin />} />
         <Route path="/owner-login" element={<OwnerLogin />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/menu" element={<Menu />} />
         <Route path="/about-us" element={<AboutUs />} /> {/* Route for AboutUs */}
         <Route path="/contact" element={<Footer />} /> {/* Route for Footer */}

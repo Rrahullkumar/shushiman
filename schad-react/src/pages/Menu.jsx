@@ -12,8 +12,8 @@ const Menu = () => {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        console.log("Decoded token:", decoded); // Debugging: Log the decoded token
-        setUserName(decoded.name || "User"); // Set the user's name
+        console.log("Decoded token:", decoded);
+        setUserName(decoded.name || decoded.email.split("@")[0] || "User");
       } catch (error) {
         console.error("Error decoding token:", error);
       }
