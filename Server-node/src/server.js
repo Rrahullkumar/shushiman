@@ -8,7 +8,7 @@ import fs from "fs";
 import multer from "multer";
 
 import authRoutes from "./routes/authRoutes.js";
-import menuRoutes from "./routes/menuRoutes.js"; // ✅ No longer need to pass upload
+import menuRoutes from "./routes/menuRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 
 // Load environment variables
@@ -49,25 +49,16 @@ const upload = multer({
   fileFilter
 });
 
-// Enhanced CORS configuration
+// CORS configuration to allow frontend access dynamically
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: process.env.FRONTEND_URL || "*",  // ✅ Use your frontend domain in production
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
 // Body parser middleware
-app.use(express.json({
-  limit: "10mb",
-  verify: (req, res, buf) => {
-    try {
-      JSON.parse(buf.toString());
-    } catch (e) {
-      res.status(400).json({ error: "Invalid JSON format" });
-    }
-  }
-}));
+app.use(express.json());
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -80,18 +71,23 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/menu", menuRoutes); // ✅ No longer passing upload
+app.use("/api/menu", menuRoutes);
 app.use("/api/orders", orderRoutes);
 
-app.get('/',(req,res)=>{
-  res.send({
+app.get("/", (req, res) => {
+  res.json({
     activeStatus: true,
     error: false,
-  })
-})
+    message: "Backend is running on Vercel!",
+  });
+});
 
-// Database connection
+// Database connection (connects once per cold start)
 const connectDB = async () => {
+  if (!process.env.MONGO_URI) {
+    console.error("❌ MONGO_URI is missing in environment variables!");
+    process.exit(1);
+  }
   try {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
@@ -104,6 +100,8 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
+
+connectDB();  // ✅ Call DB connection function
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -119,12 +117,6 @@ app.use((err, req, res, next) => {
 // 404 handler
 app.use((req, res) => res.status(404).json({ error: "Endpoint not found" }));
 
-// Start server
-connectDB().then(() => {
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`📂 Upload directory: ${uploadsDir}`);
-  });
-});
+// ✅ Export `app` for Vercel instead of `app.listen()`
+export default app;
+
