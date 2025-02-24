@@ -70,7 +70,7 @@ app.use(express.json({
 }));
 
 // Serve uploaded files statically
-app.use("/uploads", express.static(uploadsDir));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Request logging middleware
 app.use((req, res, next) => {

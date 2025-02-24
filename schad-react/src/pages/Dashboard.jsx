@@ -85,20 +85,6 @@ const Dashboard = () => {
     }
   };
 
-  // // Add new menu item
-  // const handleAddItem = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const response = await axios.post("http://localhost:5000/api/menu", newItem);
-  //     setMenuItems([...menuItems, response.data]);
-  //     setShowAddItemModal(false);
-  //     setNewItem({ name: "", description: "", price: "", category: "", image: "", available: true });
-  //   } catch (error) {
-  //     console.error("Error adding menu item:", error);
-  //     alert("Failed to add menu item. Check the console for details.");
-  //   }
-  // };
-
   // Delete menu item
   const handleDeleteItem = async (id) => {
     try {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import sushiImg from "../assets/sushi-12.png";
 import ramenImg from "../assets/sushi-11.png";
 import udonImg from "../assets/sushi-10.png";
@@ -14,6 +15,7 @@ const foodItems = [
 ];
 
 const PopularFood = () => {
+  const navigate = useNavigate(); // Initialize navigate function
   const [key, setKey] = useState(0);
 
   useEffect(() => {
@@ -84,6 +86,7 @@ const PopularFood = () => {
             <div className="flex items-center justify-between w-full mt-6 px-4">
               <p className="text-2xl font-bold text-gray-900">{food.price}</p>
               <motion.button
+                onClick={() => navigate("/customer-login")} // Navigate to CustomerLogin on click
                 className="flex items-center gap-2 bg-yellow-400 px-5 py-3 rounded-full font-semibold hover:bg-yellow-500 transition-all shadow-md"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -94,21 +97,6 @@ const PopularFood = () => {
           </motion.div>
         ))}
       </div>
-
-      {/* Floating Particles for Playfulness */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute w-2 h-2 bg-yellow-400 rounded-full"
-          initial={{ y: 0, x: Math.random() * window.innerWidth, opacity: 0 }}
-          animate={{ y: window.innerHeight, opacity: [0, 1, 0] }}
-          transition={{
-            duration: Math.random() * 3 + 2,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-          }}
-        />
-      ))}
     </section>
   );
 };

@@ -1,10 +1,13 @@
 import React from "react";
 import { FiShoppingCart } from "react-icons/fi";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import LeafImage from "../assets/sushi-2.png";
 import SushiCartoon from "../assets/sushi-cartoon.png";
 
 function HeroSection() {
+    const navigate = useNavigate();
+
     return (
         <section className="relative bg-[#0c4b40] text-white h-screen w-full flex flex-col lg:flex-row items-center justify-center px-6 md:px-12 lg:px-24 overflow-hidden">
             {/* Left Side Content */}
@@ -30,6 +33,7 @@ function HeroSection() {
                         View Menu 🍣
                     </motion.button>
                     <motion.button 
+                        onClick={() => navigate("/customer-login")}
                         className="border border-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-white hover:text-black transition"
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
