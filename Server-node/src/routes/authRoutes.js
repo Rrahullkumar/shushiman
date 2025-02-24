@@ -1,11 +1,7 @@
-const express = require("express");
+import express from "express";
+import { registerUser, loginUser, registerOwner, loginOwner } from "../controllers/authController.js"; // ✅ Use `import`
+
 const router = express.Router();
-const {
-  registerUser,
-  loginUser,
-  registerOwner,
-  loginOwner
-} = require("../controllers/authController");
 
 // Customer routes
 router.post("/register", registerUser);
@@ -15,4 +11,5 @@ router.post("/login", loginUser);
 router.post("/owner/register", registerOwner);
 router.post("/owner/login", loginOwner);
 
-module.exports = router;
+export default router; // ✅ Correct ES Module export
+

@@ -1,6 +1,6 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import User from "../models/user.js"; // ✅ Ensure `.js` extension for ES module
 
 // Customer Auth Functions
 const registerUser = async (req, res) => {
@@ -125,10 +125,5 @@ const loginOwner = async (req, res) => {
   }
 };
 
-// Export all functions together
-module.exports = {
-  registerUser,
-  loginUser,
-  registerOwner,
-  loginOwner
-};
+// ✅ Fix: Use `export` instead of `module.exports`
+export { registerUser, loginUser, registerOwner, loginOwner };

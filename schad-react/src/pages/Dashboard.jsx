@@ -41,16 +41,22 @@ const Dashboard = () => {
       formData.append("price", newItem.price);
       formData.append("category", newItem.category);
       formData.append("available", newItem.available);
+      
       if (newItem.image) {
         formData.append("image", newItem.image);
       }
-
-      const response = await axios.post("http://localhost:5000/api/menu", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+  
+      const response = await axios.post(
+        "http://localhost:5000/api/menu",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-      });
-
+      );
+  
       setMenuItems([...menuItems, response.data]);
       setShowAddItemModal(false);
       setNewItem({ 
@@ -61,7 +67,6 @@ const Dashboard = () => {
         image: null, 
         available: true 
       });
-      alert("Item added successfully!");
     } catch (error) {
       console.error("Error adding menu item:", error);
       alert(`Failed to add item: ${error.response?.data?.message || error.message}`);

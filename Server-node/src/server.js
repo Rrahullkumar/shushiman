@@ -1,12 +1,53 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const cors = require("cors");
-const authRoutes = require("./routes/authRoutes");
-const menuRoutes = require('./routes/menuRoutes');
-const orderRoutes = require('./routes/orderRoutes');
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+import multer from "multer";
+
+import authRoutes from "./routes/authRoutes.js";
+import menuRoutes from "./routes/menuRoutes.js"; // ✅ No longer need to pass upload
+import orderRoutes from "./routes/orderRoutes.js";
+
+// Load environment variables
+dotenv.config();
+
+// Fix for `__dirname` in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed!"), false);
+  }
+};
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter
+});
 
 // Enhanced CORS configuration
 app.use(cors({
@@ -28,7 +69,10 @@ app.use(express.json({
   }
 }));
 
-// Request logging
+// Serve uploaded files statically
+app.use("/uploads", express.static(uploadsDir));
+
+// Request logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   next();
@@ -36,8 +80,8 @@ app.use((req, res, next) => {
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use('/api/menu', menuRoutes);
-app.use('/api/orders', orderRoutes);
+app.use("/api/menu", menuRoutes); // ✅ No longer passing upload
+app.use("/api/orders", orderRoutes);
 
 // Database connection
 const connectDB = async () => {
@@ -47,32 +91,33 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000
     });
-    console.log("MongoDB connected successfully");
+    console.log("✅ MongoDB connected successfully");
   } catch (err) {
-    console.error("MongoDB connection failed:", err.message);
+    console.error("❌ MongoDB connection failed:", err.message);
     process.exit(1);
   }
 };
 
-// Error handling
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(`[ERROR] ${err.message}`);
-  res.status(err.status || 500).json({
-    error: "API Error",
-    message: err.message
-  });
+
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({ error: "File Upload Error", message: err.message });
+  }
+
+  res.status(err.status || 500).json({ error: "API Error", message: err.message });
 });
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: "Endpoint not found" });
-});
+app.use((req, res) => res.status(404).json({ error: "Endpoint not found" }));
 
 // Start server
 connectDB().then(() => {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`📂 Upload directory: ${uploadsDir}`);
   });
 });
