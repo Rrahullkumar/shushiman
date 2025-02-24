@@ -9,7 +9,9 @@ const Dashboard = () => {
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [menuItems, setMenuItems] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [newItem, setNewItem] = useState({ name: "", description: "", price: "", category: "", image: "", available: true });
+  const [newItem, setNewItem] = useState({ name: "", description: "", price: "", category: "", image: null, available: true });
+  const [loading, setLoading] = useState(false);
+
 
   // Fetch menu items and orders
   useEffect(() => {
@@ -27,6 +29,47 @@ const Dashboard = () => {
     }
   };
 
+  // Add new menu item with image handling
+  const handleAddItem = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      const formData = new FormData();
+      formData.append("name", newItem.name);
+      formData.append("description", newItem.description);
+      formData.append("price", newItem.price);
+      formData.append("category", newItem.category);
+      formData.append("available", newItem.available);
+      if (newItem.image) {
+        formData.append("image", newItem.image);
+      }
+
+      const response = await axios.post("http://localhost:5000/api/menu", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
+
+      setMenuItems([...menuItems, response.data]);
+      setShowAddItemModal(false);
+      setNewItem({ 
+        name: "", 
+        description: "", 
+        price: "", 
+        category: "", 
+        image: null, 
+        available: true 
+      });
+      alert("Item added successfully!");
+    } catch (error) {
+      console.error("Error adding menu item:", error);
+      alert(`Failed to add item: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchOrders = async () => {
     try {
       const response = await axios.get("http://localhost:5000/api/orders");
@@ -37,19 +80,19 @@ const Dashboard = () => {
     }
   };
 
-  // Add new menu item
-  const handleAddItem = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await axios.post("http://localhost:5000/api/menu", newItem);
-      setMenuItems([...menuItems, response.data]);
-      setShowAddItemModal(false);
-      setNewItem({ name: "", description: "", price: "", category: "", image: "", available: true });
-    } catch (error) {
-      console.error("Error adding menu item:", error);
-      alert("Failed to add menu item. Check the console for details.");
-    }
-  };
+  // // Add new menu item
+  // const handleAddItem = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     const response = await axios.post("http://localhost:5000/api/menu", newItem);
+  //     setMenuItems([...menuItems, response.data]);
+  //     setShowAddItemModal(false);
+  //     setNewItem({ name: "", description: "", price: "", category: "", image: "", available: true });
+  //   } catch (error) {
+  //     console.error("Error adding menu item:", error);
+  //     alert("Failed to add menu item. Check the console for details.");
+  //   }
+  // };
 
   // Delete menu item
   const handleDeleteItem = async (id) => {
