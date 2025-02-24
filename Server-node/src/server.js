@@ -83,6 +83,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/menu", menuRoutes); // ✅ No longer passing upload
 app.use("/api/orders", orderRoutes);
 
+app.get('/',(req,res)=>{
+  res.send({
+    activeStatus: true,
+    error: false,
+  })
+})
+
 // Database connection
 const connectDB = async () => {
   try {
