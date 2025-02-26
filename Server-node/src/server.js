@@ -71,7 +71,7 @@ const corsConfig = {
   allowedHeaders: ["Content-Type", "Authorization"]
 };
 
-app.options("*", cors(corsConfig)); //  Allow preflight requests for all routes
+app.options("", cors(corsConfig)); //  Allow preflight requests for all routes
 app.use(cors(corsConfig));
 
 // Body Parser Middleware with Error Handling
