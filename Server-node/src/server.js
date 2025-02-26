@@ -7,9 +7,6 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import multer from "multer";
 
-
-
-
 // Load environment variables
 dotenv.config();
 
