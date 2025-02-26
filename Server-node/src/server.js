@@ -150,7 +150,7 @@ const startServer = async () => {
       });
     }
   } catch (err) {
-    console.error("🔥 Server startup failed:", err);
+    console.error(" Server startup failed:", err);
     process.exit(1);
   }
 };
