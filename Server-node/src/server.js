@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import multer from "multer";
 
-// Load environment variables first
+// Load environment variables
 dotenv.config();
 
 // Configure environment detection
@@ -18,7 +18,7 @@ const __dirname = path.dirname(__filename);
 // Initialize express app
 const app = express();
 
-// Configure upload directory for Vercel compatibility
+// Configure upload directory (Vercel compatibility)
 const uploadsDir = isProduction 
   ? path.join("/tmp", "uploads")
   : path.join(__dirname, "uploads");
@@ -28,7 +28,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Configure multer with enhanced error handling
+// Configure Multer (File Upload)
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadsDir),
   filename: (req, file, cb) => {
@@ -47,36 +47,35 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter
 });
 
-// Enhanced CORS configuration
+// CORS Configuration
 app.use(cors({
-  origin: isProduction 
-    ? process.env.FRONTEND_URL 
-    : "http://localhost:5173",
+  origin: isProduction ? process.env.FRONTEND_URL : "http://localhost:5173",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-// Body parser middleware with error handling
+// Body Parser Middleware with Error Handling
 app.use(express.json({
   limit: "10mb",
-  verify: (req, res, buf) => {
+  verify: (req, res, buf, encoding) => {
     try {
-      JSON.parse(buf.toString());
+      JSON.parse(buf.toString(encoding));
     } catch (e) {
       res.status(400).json({ error: "Invalid JSON format" });
+      throw new Error("Invalid JSON");
     }
   }
 }));
 
-// Serve static files with Vercel compatibility
+// Serve Static Files (for Image Uploads)
 app.use('/uploads', express.static(uploadsDir));
 
-// Database connection handler with retry logic
+// Database Connection
 const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -85,60 +84,64 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 5000
     });
     console.log("✅ MongoDB connected successfully");
+
+    // Keep MongoDB alive (for Vercel)
+    setInterval(() => {
+      mongoose.connection.db.admin().ping();
+    }, 60000);
+    
   } catch (err) {
     console.error("❌ MongoDB connection failed:", err.message);
     if (isProduction) process.exit(1);
   }
 };
 
-// Async server initialization
-const initializeServer = async () => {
-  // Load routes dynamically after DB connection
-  const authRoutes = (await import("./routes/authRoutes.js")).default;
-  const createMenuRoutes = (await import("./routes/menuRoutes.js")).default;
-  const orderRoutes = (await import("./routes/orderRoutes.js")).default;
+// Import Routes
+import authRoutes from "./routes/authRoutes.js";
+import menuRoutes from "./routes/menuRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
-  // Apply routes
-  app.use("/api/auth", authRoutes);
-  app.use("/api/menu", createMenuRoutes(upload));
-  app.use("/api/orders", orderRoutes);
+// Initialize Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/menu", menuRoutes);
+app.use("/api/orders", orderRoutes);
 
-  // Add health check endpoint
-  app.get("/health", (req, res) => res.json({ status: "healthy" }));
+// Health Check Route
+app.get("/health", (req, res) => res.json({ 
+  status: "healthy",
+  mongo: mongoose.connection.readyState === 1 ? "connected" : "disconnected"
+}));
 
-  // Preserve existing request logging
-  app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
-    next();
-  });
+// Request Logging Middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 
-  // Enhanced error handling
-  app.use((err, req, res, next) => {
-    console.error(`[ERROR] ${err.message}`);
-    
-    // Handle multer errors
-    if (err instanceof multer.MulterError) {
-      return res.status(400).json({
-        error: "File Upload Error",
-        message: err.message
-      });
-    }
-
-    res.status(err.status || 500).json({
-      error: "API Error",
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(`[ERROR] ${err.message}`);
+  
+  if (err instanceof multer.MulterError) {
+    return res.status(400).json({
+      error: "File Upload Error",
       message: err.message
     });
+  }
+
+  res.status(err.status || 500).json({
+    error: "API Error",
+    message: isProduction ? "Internal server error" : err.message
   });
+});
 
-  // Preserve 404 handler
-  app.use((req, res) => res.status(404).json({ error: "Endpoint not found" }));
-};
+// 404 Handler (Not Found)
+app.use((req, res) => res.status(404).json({ error: "Endpoint not found" }));
 
-// Server startup sequence
-const start = async () => {
+// Start Server
+const startServer = async () => {
   try {
     await connectDB();
-    await initializeServer();
     
     if (!isProduction) {
       const PORT = process.env.PORT || 5000;
@@ -152,8 +155,8 @@ const start = async () => {
   }
 };
 
-// Start the server
-start();
+// Start Server
+startServer();
 
-// Vercel requires this export
+// Export for Vercel
 export default app;
