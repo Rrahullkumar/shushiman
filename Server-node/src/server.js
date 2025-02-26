@@ -7,6 +7,9 @@ import { fileURLToPath } from "url";
 import fs from "fs";
 import multer from "multer";
 
+
+
+
 // Load environment variables
 dotenv.config();
 
@@ -52,12 +55,23 @@ const upload = multer({
 });
 
 // CORS Configuration
-app.use(cors({
-  origin: isProduction ? process.env.FRONTEND_URL : "http://localhost:5173",
+// app.use(cors({
+//   origin: isProduction ? process.env.FRONTEND_URL : "http://localhost:5173",
+//   methods: ["GET", "POST", "PUT", "DELETE"],
+//   allowedHeaders: ["Content-Type", "Authorization"],
+//   credentials: true
+// }));
+
+const corsConfig = {
+  origin: process.env.NODE_ENV === "production" 
+    ? process.env.FRONTEND_URL 
+    : "http://localhost:5173",
+  credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsConfig));
 
 // Body Parser Middleware with Error Handling
 app.use(express.json({
